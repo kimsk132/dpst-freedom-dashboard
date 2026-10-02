@@ -103,7 +103,7 @@
             </p>
             <p class="text-xl md:text-2xl font-bold text-white">
                 Total Buyout Equivalent: 
-                <span id="header-total-thb-equiv" class="text-emerald-400 font-mono">0 THB</span>
+                <span id="header-total-thb-equiv" class="text-amber-400 font-mono">0 THB</span>
             </p>
             <p class="text-lg md:text-xl font-medium text-slate-400">
                 Freedom Countdown: 
@@ -184,8 +184,8 @@
                     </div>
                     <h3 class="text-sm font-semibold text-slate-300">Original DPST Bond</h3>
                 </div>
-                <p class="text-xl font-bold text-white">$411,726.83 <span class="text-sm text-slate-400">USD</span></p>
-                <p class="text-xl font-bold text-white">+ 151,712.00 <span class="text-sm text-slate-400">THB</span></p>
+                <p class="text-xl font-bold text-white">USD 411,726.83</p>
+                <p class="text-xl font-bold text-white">+ THB 151,712.00</p>
                 <p class="text-xs text-slate-400 mt-2">Continuous linear pro-rata buyout structure</p>
             </div>
 
@@ -311,8 +311,8 @@
         const fxInput = document.getElementById('fx-rate-input');
 
         // Formatter functions
-        const formatUSD = (val, decimals = 4) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(val);
-        const formatTHB = (val, decimals = 2) => new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(val);
+        const formatUSD = (val, decimals = 4) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', currencyDisplay: 'code', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(val);
+        const formatTHB = (val, decimals = 2) => new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'code', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(val);
 
         // Helper to format Date object into YYYY-MM-DD for datepicker input
         function formatDateToYYYYMMDD(dateObj) {
