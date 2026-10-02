@@ -229,11 +229,20 @@
                     <button onclick="setDeparturePreset('today')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
                         Last Day: Today
                     </button>
+                    <button onclick="setDeparturePreset('feb')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                        Last Day: End of Feb
+                    </button>
+                    <button onclick="setDeparturePreset('march')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                        Last Day: End of March
+                    </button>
+                    <button onclick="setDeparturePreset('april')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                        Last Day: End of April
+                    </button>
                     <button onclick="setDeparturePreset('short1day')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition">
-                        Last Day: May 17, 2028 (1-Day Short)
+                        1-Day Short
                     </button>
                     <button onclick="setDeparturePreset('end')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition">
-                        Last Day: May 18, 2028 (Full Term)
+                        Full Term
                     </button>
                 </div>
             </div>
@@ -469,7 +478,7 @@
             const options = { month: 'short', day: 'numeric', year: 'numeric' };
             
             if (simDate.getFullYear() === 2028 && simDate.getMonth() === 4 && simDate.getDate() === 18) {
-                document.getElementById('simulated-date-display').textContent = 'May 18, 2028 (Full Term)';
+                document.getElementById('simulated-date-display').textContent = 'May 18, 2028';
             } else {
                 document.getElementById('simulated-date-display').textContent = simDate.toLocaleDateString('en-US', options);
             }
@@ -498,6 +507,12 @@
                 targetDate = new Date('2028-05-17T00:00:00+07:00');
             } else if (type === 'end') {
                 targetDate = new Date('2028-05-18T00:00:00+07:00');
+            } else if (type === 'april') {
+                targetDate = new Date('2028-04-30T00:00:00+07:00');
+            } else if (type === 'march') {
+                targetDate = new Date('2028-03-31T00:00:00+07:00');
+            } else if (type === 'feb') {
+                targetDate = new Date('2028-02-29T00:00:00+07:00');
             }
 
             slider.value = targetDate.getTime();
