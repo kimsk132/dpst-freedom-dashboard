@@ -69,6 +69,11 @@
         input[type="number"] {
             -moz-appearance: textfield; /* Firefox */
         }
+        /* Style native browser date picker icon to look sharp on dark theme */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) hue-rotate(100deg) brightness(1.2);
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 md:p-8">
@@ -122,7 +127,7 @@
                         <label for="fx-rate-input" class="text-xs text-slate-400 block">USD/THB Exchange Rate</label>
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-slate-500">$1 =</span>
-                            <input type="number" id="fx-rate-input" step="0.01" value="33.57" class="bg-slate-800 text-emerald-400 font-bold text-sm rounded px-2 py-0.5 w-20 border border-slate-700 focus:outline-none focus:border-emerald-500">
+                            <input type="number" id="fx-rate-input" step="0.01" value="34" class="bg-slate-800 text-emerald-400 font-bold text-sm rounded px-2 py-0.5 w-20 border border-slate-700 focus:outline-none focus:border-emerald-500">
                             <span class="text-xs text-slate-500">THB</span>
                             <button id="fx-refresh-btn" onclick="fetchExchangeRate()" class="ml-1 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border border-slate-700 transition" title="Refresh Live Exchange Rate">
                                 <i id="fx-refresh-icon" class="fa-solid fa-rotate text-xs"></i>
@@ -214,7 +219,7 @@
                     <h2 class="text-xl font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-sliders text-emerald-400"></i> Interactive Departure Simulator
                     </h2>
-                    <p class="text-sm text-slate-400">Drag slider or select a preset to calculate remaining penalty balance based on your last day of service.</p>
+                    <p class="text-sm text-slate-400">Use calendar picker, drag slider, or select a preset to simulate remaining penalty balance.</p>
                 </div>
                 
                 <!-- Quick Preset Buttons -->
@@ -231,11 +236,20 @@
                 </div>
             </div>
 
-            <!-- Departure Slider -->
-            <div class="space-y-3 bg-slate-900/60 p-5 rounded-xl border border-slate-800/80">
-                <div class="flex justify-between items-center">
-                    <label for="departure-slider" class="text-sm font-medium text-slate-300">Last Day of Service:</label>
-                    <span id="simulated-date-display" class="text-lg font-bold text-emerald-400">May 18, 2028</span>
+            <!-- Departure Controls: DatePicker + Slider -->
+            <div class="space-y-4 bg-slate-900/60 p-5 rounded-xl border border-slate-800/80">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <label for="departure-slider" class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                        <span>Last Day of Service:</span>
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <!-- Integrated Date Picker -->
+                        <div class="relative flex items-center bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 focus-within:border-emerald-500 transition">
+                            <i class="fa-regular fa-calendar text-emerald-400 text-sm mr-2"></i>
+                            <input type="date" id="departure-datepicker" class="bg-transparent text-emerald-400 font-bold text-sm focus:outline-none cursor-pointer">
+                        </div>
+                        <span id="simulated-date-display" class="text-base md:text-lg font-bold text-emerald-400 hidden sm:inline">May 18, 2028</span>
+                    </div>
                 </div>
                 
                 <input type="range" id="departure-slider" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
@@ -285,18 +299,26 @@
         const ORIGINAL_THB = 151712.00;
 
         // --- DASHBOARD REFRESH RATE (in milliseconds) ---
-        // Change this value to adjust update frequency (e.g., 100 = 10 FPS, 1000 = 1 sec)
         const REFRESH_RATE_MS = 100;
 
-        let usdExchangeRate = 33.57; // Default exchange rate
+        let usdExchangeRate = 34; // Default exchange rate
 
         // Elements
         const slider = document.getElementById('departure-slider');
+        const datepicker = document.getElementById('departure-datepicker');
         const fxInput = document.getElementById('fx-rate-input');
 
         // Formatter functions
         const formatUSD = (val, decimals = 4) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(val);
         const formatTHB = (val, decimals = 2) => new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(val);
+
+        // Helper to format Date object into YYYY-MM-DD for datepicker input
+        function formatDateToYYYYMMDD(dateObj) {
+            const yyyy = dateObj.getFullYear();
+            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const dd = String(dateObj.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
 
         // Fetch Live Exchange Rate with spin animation
         async function fetchExchangeRate() {
@@ -309,37 +331,60 @@
                     const data = await res.json();
                     if (data && data.rates && data.rates.THB) {
                         usdExchangeRate = parseFloat(data.rates.THB);
-                        fxInput.value = usdExchangeRate.toFixed(2);
+                        // Calculate the value with 2% FX fee
+                        fxInput.value = (usdExchangeRate * 1.02).toFixed(2);
                     }
                 }
             } catch (err) {
-                console.log('Using manual/fallback exchange rate (33.57 THB/USD)');
+                console.log('Using manual/fallback exchange rate (34 THB/USD)');
             } finally {
                 if (icon) setTimeout(() => icon.classList.remove('fa-spin'), 500);
             }
             updateDashboard();
         }
 
-        // Initialize Slider
-        function initSlider() {
+        // Initialize Controls (Slider & DatePicker)
+        function initControls() {
             const now = new Date();
             const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const minTime = Math.max(todayStart.getTime(), BOND_START_DATE.getTime());
             
-            // Slider max corresponds to May 18th (last day of service)
-            const maxTime = new Date('2028-05-18T00:00:00+07:00').getTime();
+            // Slider max corresponds to May 18th, 2028
+            const maxDateObj = new Date('2028-05-18T00:00:00+07:00');
+            const maxTime = maxDateObj.getTime();
 
             slider.min = minTime;
             slider.max = maxTime;
             slider.step = 86400000; // 1 day step in ms
             slider.value = minTime; // Default to today
 
+            // Set Datepicker constraints
+            const minDateObj = new Date(minTime);
+            datepicker.min = formatDateToYYYYMMDD(minDateObj);
+            datepicker.max = formatDateToYYYYMMDD(maxDateObj);
+            datepicker.value = formatDateToYYYYMMDD(minDateObj);
+
             const options = { month: 'short', day: 'numeric', year: 'numeric' };
             document.getElementById('slider-min-label').textContent = `Today (${now.toLocaleDateString('en-US', options)})`;
             
-            slider.addEventListener('input', calculateSimulation);
+            // Slider input handler -> Sync datepicker
+            slider.addEventListener('input', () => {
+                const simDate = new Date(parseInt(slider.value));
+                datepicker.value = formatDateToYYYYMMDD(simDate);
+                calculateSimulation();
+            });
+
+            // Datepicker input handler -> Sync slider
+            datepicker.addEventListener('change', () => {
+                if (!datepicker.value) return;
+                const parts = datepicker.value.split('-');
+                const pickedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                slider.value = pickedDate.getTime();
+                calculateSimulation();
+            });
+
             fxInput.addEventListener('input', () => {
-                usdExchangeRate = parseFloat(fxInput.value) || 33.57;
+                usdExchangeRate = parseFloat(fxInput.value) || 34;
                 updateDashboard();
             });
         }
@@ -444,26 +489,28 @@
         // Preset Button Handlers
         function setDeparturePreset(type) {
             const now = new Date();
+            let targetDate;
             if (type === 'today') {
-                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                slider.value = Math.max(todayStart.getTime(), BOND_START_DATE.getTime());
+                targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                if (targetDate < BOND_START_DATE) targetDate = new Date(BOND_START_DATE);
             } else if (type === 'short1day') {
-                const shortDate = new Date('2028-05-17T00:00:00+07:00');
-                slider.value = shortDate.getTime();
+                targetDate = new Date('2028-05-17T00:00:00+07:00');
             } else if (type === 'end') {
-                const endDate = new Date('2028-05-18T00:00:00+07:00');
-                slider.value = endDate.getTime();
+                targetDate = new Date('2028-05-18T00:00:00+07:00');
             }
+
+            slider.value = targetDate.getTime();
+            datepicker.value = formatDateToYYYYMMDD(targetDate);
             calculateSimulation();
         }
 
         // Startup
         window.onload = function() {
-            initSlider();
+            initControls();
             fetchExchangeRate();
             updateDashboard();
             
-            // Interval loop using the constant defined above
+            // Interval loop
             setInterval(updateDashboard, REFRESH_RATE_MS);
             
             setDeparturePreset('today');
