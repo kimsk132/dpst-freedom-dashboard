@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPST Freedom Dashboard - Pairode</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            900: '#064e3b',
+                        },
+                        slate: {
+                            800: '#1e293b',
+                            850: '#172033',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .glow-emerald {
+            box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
+        }
+        .gradient-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #10b981;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+        /* Hide browser-default number input arrows */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 md:p-8">
+
+    <header class="max-w-5xl mx-auto w-full text-center my-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-4 tracking-wide uppercase">
+            <i class="fa-solid fa-shield-halved"></i> Pairode's DPST Bond Tracker
+        </div>
+
+        <!-- Clean, Centered Greeting -->
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-4">
+            Hello Pairode!
+        </h1>
+
+        <!-- Dedicated Separate Lines for Remaining Balances & Days -->
+        <div class="space-y-2 mt-3">
+            <p class="text-lg md:text-xl font-medium text-slate-300">
+                Remaining Principal: 
+                <span id="header-balance-usd" class="text-emerald-400 font-bold font-mono">$0.00 USD</span> 
+                <span class="text-slate-500">+</span> 
+                <span id="header-balance-thb" class="text-emerald-400 font-bold font-mono">0 THB</span>
+            </p>
+            <p class="text-xl md:text-2xl font-bold text-white">
+                Total Buyout Equivalent: 
+                <span id="header-total-thb-equiv" class="text-emerald-400 font-mono">0 THB</span>
+            </p>
+            <p class="text-lg md:text-xl font-medium text-slate-400">
+                Freedom Countdown: 
+                <span id="header-days-left" class="text-emerald-400 font-bold">0</span> 
+                <span>unserved workdays remaining</span>
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto w-full space-y-6">
+
+        <!-- Live Clock & Progress Section -->
+        <div class="gradient-card glow-emerald rounded-2xl p-6 md:p-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
+                <div>
+                    <h2 class="text-sm uppercase tracking-wider text-slate-400 font-semibold mb-1">Total Bond Duration</h2>
+                    <p class="text-xs text-slate-500">July 16, 2021 &mdash; May 18, 2028 (2,499 Total Service Days)</p>
+                </div>
+                <!-- Exchange Rate Input & Refresh Button -->
+                <div class="text-right flex items-center gap-3 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800">
+                    <i class="fa-solid fa-coins text-amber-400 text-lg"></i>
+                    <div class="text-left">
+                        <label for="fx-rate-input" class="text-xs text-slate-400 block">USD/THB Exchange Rate</label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-500">$1 =</span>
+                            <input type="number" id="fx-rate-input" step="0.01" value="33.57" class="bg-slate-800 text-emerald-400 font-bold text-sm rounded px-2 py-0.5 w-20 border border-slate-700 focus:outline-none focus:border-emerald-500">
+                            <span class="text-xs text-slate-500">THB</span>
+                            <button id="fx-refresh-btn" onclick="fetchExchangeRate()" class="ml-1 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border border-slate-700 transition" title="Refresh Live Exchange Rate">
+                                <i id="fx-refresh-icon" class="fa-solid fa-rotate text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Down-To-The-Second Live Timer Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center my-6">
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <span id="timer-days" class="block text-3xl md:text-4xl font-extrabold text-white">0</span>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest mt-1 block">Days</span>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <span id="timer-hours" class="block text-3xl md:text-4xl font-extrabold text-white">00</span>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest mt-1 block">Hours</span>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <span id="timer-minutes" class="block text-3xl md:text-4xl font-extrabold text-white">00</span>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest mt-1 block">Minutes</span>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <span id="timer-seconds" class="block text-3xl md:text-4xl font-extrabold text-emerald-400">00</span>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest mt-1 block">Seconds</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="space-y-2 mt-6">
+                <div class="flex justify-between text-sm font-medium">
+                    <span class="text-slate-400">Overall Freedom Progress</span>
+                    <span id="progress-percent" class="text-emerald-400 font-bold font-mono">0.000000%</span>
+                </div>
+                <div class="w-full bg-slate-900 h-4 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                    <div id="progress-bar-fill" class="bg-emerald-500 h-full rounded-full transition-all duration-75 shadow-lg shadow-emerald-500/50" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500">
+                    <span>Start: Jul 16, 2021</span>
+                    <span>Full Term: May 18, 2028</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Initial Obligation -->
+            <div class="gradient-card p-6 rounded-2xl">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2.5 rounded-lg bg-blue-500/10 text-blue-400">
+                        <i class="fa-solid fa-file-contract text-lg"></i>
+                    </div>
+                    <h3 class="text-sm font-semibold text-slate-300">Original DPST Bond</h3>
+                </div>
+                <p class="text-xl font-bold text-white">$411,726.83 <span class="text-sm text-slate-400">USD</span></p>
+                <p class="text-xl font-bold text-white">+ 151,712.00 <span class="text-sm text-slate-400">THB</span></p>
+                <p class="text-xs text-slate-400 mt-2">Continuous linear pro-rata buyout structure</p>
+            </div>
+
+            <!-- Daily Amortization / Buyout Decrease Rate -->
+            <div class="gradient-card p-6 rounded-2xl">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+                        <i class="fa-solid fa-arrow-trend-down text-lg"></i>
+                    </div>
+                    <h3 class="text-sm font-semibold text-slate-300">Daily Freedom Rate</h3>
+                </div>
+                <p id="daily-rate-components" class="text-lg font-bold text-emerald-400">$164.76 USD + 60.71 THB</p>
+                <p id="daily-rate-total" class="text-xs text-slate-400 mt-2">~5,592 THB total daily penalty reduction</p>
+            </div>
+
+            <!-- Total Paid Off / Served -->
+            <div class="gradient-card p-6 rounded-2xl">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2.5 rounded-lg bg-purple-500/10 text-purple-400">
+                        <i class="fa-solid fa-circle-check text-lg"></i>
+                    </div>
+                    <h3 class="text-sm font-semibold text-slate-300">Service Value Earned</h3>
+                </div>
+                <p id="served-value-usd" class="text-xl font-bold text-white font-mono">$0.00 USD</p>
+                <p id="served-value-thb" class="text-xl font-bold text-white font-mono">+ 0 THB</p>
+                <p id="served-value-total" class="text-xs text-slate-400 mt-2">Fulfilled in real time</p>
+            </div>
+        </div>
+
+        <div class="gradient-card p-6 md:p-8 rounded-2xl space-y-6">
+            <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-emerald-400"></i> Interactive Departure Simulator
+                    </h2>
+                    <p class="text-sm text-slate-400">Drag slider or select a preset to calculate remaining penalty balance based on your last day of service.</p>
+                </div>
+                
+                <!-- Quick Preset Buttons -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setDeparturePreset('today')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                        Last Day: Today
+                    </button>
+                    <button onclick="setDeparturePreset('short1day')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition">
+                        Last Day: May 17, 2028 (1-Day Short)
+                    </button>
+                    <button onclick="setDeparturePreset('end')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition">
+                        Last Day: May 18, 2028 (Full Term)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Departure Slider -->
+            <div class="space-y-3 bg-slate-900/60 p-5 rounded-xl border border-slate-800/80">
+                <div class="flex justify-between items-center">
+                    <label for="departure-slider" class="text-sm font-medium text-slate-300">Last Day of Service:</label>
+                    <span id="simulated-date-display" class="text-lg font-bold text-emerald-400">May 18, 2028</span>
+                </div>
+                
+                <input type="range" id="departure-slider" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                
+                <div class="flex justify-between text-xs text-slate-500 font-mono">
+                    <span id="slider-min-label">Today</span>
+                    <span>May 18, 2028 (Full Term)</span>
+                </div>
+            </div>
+
+            <!-- Simulation Output -->
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-center">
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <p class="text-xs text-slate-400 uppercase">Simulated USD Portion</p>
+                    <p id="sim-cost-usd" class="text-xl font-extrabold text-emerald-400 font-mono">$0.00</p>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <p class="text-xs text-slate-400 uppercase">Simulated THB Portion</p>
+                    <p id="sim-cost-thb" class="text-xl font-extrabold text-white font-mono">0 THB</p>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <p class="text-xs text-slate-400 uppercase">Total THB Equivalent</p>
+                    <p id="sim-cost-total-thb" class="text-xl font-extrabold text-emerald-400 font-mono">0 THB</p>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <p class="text-xs text-slate-400 uppercase">Unserved Workdays</p>
+                    <p id="sim-unserved-days" class="text-xl font-extrabold text-amber-400">0 Days</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="max-w-5xl mx-auto w-full text-center mt-12 py-6 border-t border-slate-800/60 text-xs text-slate-500 space-y-2">
+        <p>DPST Freedom Countdown Dashboard</p>
+        <p>Continuous Real-Time Pro-Rata Formula: Principal ($411,726.83 USD + 151,712.00 THB) &times; (Remaining Time / 2,499 Days)</p>
+    </footer>
+
+    <script>
+        // --- BOND CONSTANTS ---
+        const BOND_START_DATE = new Date('2021-07-16T00:00:00+07:00');
+        // May 18th is the LAST required work day. Obligation completes at end-of-day May 18 (May 19 00:00:00)
+        const BOND_END_DATE = new Date('2028-05-19T00:00:00+07:00'); 
+        const TOTAL_BOND_DAYS = 2499;
+        
+        const ORIGINAL_USD = 411726.83;
+        const ORIGINAL_THB = 151712.00;
+
+        // --- DASHBOARD REFRESH RATE (in milliseconds) ---
+        // Change this value to adjust update frequency (e.g., 100 = 10 FPS, 1000 = 1 sec)
+        const REFRESH_RATE_MS = 100;
+
+        let usdExchangeRate = 33.57; // Default exchange rate
+
+        // Elements
+        const slider = document.getElementById('departure-slider');
+        const fxInput = document.getElementById('fx-rate-input');
+
+        // Formatter functions
+        const formatUSD = (val, decimals = 4) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(val);
+        const formatTHB = (val, decimals = 2) => new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(val);
+
+        // Fetch Live Exchange Rate with spin animation
+        async function fetchExchangeRate() {
+            const icon = document.getElementById('fx-refresh-icon');
+            if (icon) icon.classList.add('fa-spin');
+            
+            try {
+                const res = await fetch('https://open.er-api.com/v6/latest/USD');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.rates && data.rates.THB) {
+                        usdExchangeRate = parseFloat(data.rates.THB);
+                        fxInput.value = usdExchangeRate.toFixed(2);
+                    }
+                }
+            } catch (err) {
+                console.log('Using manual/fallback exchange rate (33.57 THB/USD)');
+            } finally {
+                if (icon) setTimeout(() => icon.classList.remove('fa-spin'), 500);
+            }
+            updateDashboard();
+        }
+
+        // Initialize Slider
+        function initSlider() {
+            const now = new Date();
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const minTime = Math.max(todayStart.getTime(), BOND_START_DATE.getTime());
+            
+            // Slider max corresponds to May 18th (last day of service)
+            const maxTime = new Date('2028-05-18T00:00:00+07:00').getTime();
+
+            slider.min = minTime;
+            slider.max = maxTime;
+            slider.step = 86400000; // 1 day step in ms
+            slider.value = minTime; // Default to today
+
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            document.getElementById('slider-min-label').textContent = `Today (${now.toLocaleDateString('en-US', options)})`;
+            
+            slider.addEventListener('input', calculateSimulation);
+            fxInput.addEventListener('input', () => {
+                usdExchangeRate = parseFloat(fxInput.value) || 33.57;
+                updateDashboard();
+            });
+        }
+
+        // Helper to calculate unserved workdays based on the LAST day of service
+        function getUnservedDaysFromLastServiceDate(lastServiceDateObj) {
+            const nextDayMidnight = new Date(lastServiceDateObj.getFullYear(), lastServiceDateObj.getMonth(), lastServiceDateObj.getDate() + 1);
+            const diffMs = Math.max(0, BOND_END_DATE - nextDayMidnight);
+            return Math.round(diffMs / (1000 * 60 * 60 * 24));
+        }
+
+        // Main Dashboard Update Function
+        function updateDashboard() {
+            const now = new Date();
+            
+            const totalMs = BOND_END_DATE - BOND_START_DATE;
+            const elapsedMs = Math.max(0, now - BOND_START_DATE);
+            const remainingMs = Math.max(0, BOND_END_DATE - now);
+
+            // Real-time continuous progress fraction
+            let remainingFraction = remainingMs / totalMs;
+            if (remainingFraction < 0) remainingFraction = 0;
+            if (remainingFraction > 1) remainingFraction = 1;
+
+            let servedFraction = 1 - remainingFraction;
+
+            // Timer Breakdown
+            const totalRemainingSeconds = Math.floor(remainingMs / 1000);
+            const daysLeft = Math.floor(totalRemainingSeconds / (3600 * 24));
+            const hoursLeft = Math.floor((totalRemainingSeconds % (3600 * 24)) / 3600);
+            const minutesLeft = Math.floor((totalRemainingSeconds % 3600) / 60);
+            const secondsLeft = totalRemainingSeconds % 60;
+
+            // Unserved discrete day count for Freedom Countdown line
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const diffMsToday = Math.max(0, BOND_END_DATE - todayStart);
+            const unservedWorkdaysToday = Math.round(diffMsToday / (1000 * 60 * 60 * 24));
+
+            // Real-time continuous amortization math
+            const remainingUSD = ORIGINAL_USD * remainingFraction;
+            const remainingTHB = ORIGINAL_THB * remainingFraction;
+            const totalTHBEquiv = (remainingUSD * usdExchangeRate) + remainingTHB;
+
+            const servedUSD = ORIGINAL_USD * servedFraction;
+            const servedTHB = ORIGINAL_THB * servedFraction;
+            const servedTotalTHBEquiv = (servedUSD * usdExchangeRate) + servedTHB;
+
+            const dailyUSD = ORIGINAL_USD / TOTAL_BOND_DAYS;
+            const dailyTHB = ORIGINAL_THB / TOTAL_BOND_DAYS;
+            const dailyTotalTHBEquiv = (dailyUSD * usdExchangeRate) + dailyTHB;
+
+            // DOM Updates
+            document.getElementById('header-balance-usd').textContent = formatUSD(remainingUSD, 4);
+            document.getElementById('header-balance-thb').textContent = `${formatTHB(remainingTHB, 2)}`;
+            document.getElementById('header-total-thb-equiv').textContent = `${formatTHB(totalTHBEquiv, 2)}`;
+            document.getElementById('header-days-left').textContent = unservedWorkdaysToday.toLocaleString();
+
+            document.getElementById('timer-days').textContent = daysLeft.toLocaleString();
+            document.getElementById('timer-hours').textContent = String(hoursLeft).padStart(2, '0');
+            document.getElementById('timer-minutes').textContent = String(minutesLeft).padStart(2, '0');
+            document.getElementById('timer-seconds').textContent = String(secondsLeft).padStart(2, '0');
+
+            document.getElementById('progress-percent').textContent = `${(servedFraction * 100).toFixed(6)}%`;
+            document.getElementById('progress-bar-fill').style.width = `${servedFraction * 100}%`;
+
+            document.getElementById('daily-rate-components').textContent = `${formatUSD(dailyUSD, 2)} + ${formatTHB(dailyTHB, 2)}`;
+            document.getElementById('daily-rate-total').textContent = `~${formatTHB(dailyTotalTHBEquiv, 2)} total daily penalty reduction`;
+
+            document.getElementById('served-value-usd').textContent = formatUSD(servedUSD, 2);
+            document.getElementById('served-value-thb').textContent = `+ ${formatTHB(servedTHB, 2)}`;
+            document.getElementById('served-value-total').textContent = `Equivalent to ~${formatTHB(servedTotalTHBEquiv, 2)} served`;
+
+            calculateSimulation();
+        }
+
+        // Simulation Calculation
+        function calculateSimulation() {
+            const simTime = parseInt(slider.value);
+            const simDate = new Date(simTime);
+
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            
+            if (simDate.getFullYear() === 2028 && simDate.getMonth() === 4 && simDate.getDate() === 18) {
+                document.getElementById('simulated-date-display').textContent = 'May 18, 2028 (Full Term)';
+            } else {
+                document.getElementById('simulated-date-display').textContent = simDate.toLocaleDateString('en-US', options);
+            }
+
+            const unservedDays = getUnservedDaysFromLastServiceDate(simDate);
+
+            const simFraction = unservedDays / TOTAL_BOND_DAYS;
+            const simUSD = ORIGINAL_USD * simFraction;
+            const simTHB = ORIGINAL_THB * simFraction;
+            const simTotalTHB = (simUSD * usdExchangeRate) + simTHB;
+
+            document.getElementById('sim-cost-usd').textContent = formatUSD(simUSD, 2);
+            document.getElementById('sim-cost-thb').textContent = formatTHB(simTHB, 2);
+            document.getElementById('sim-cost-total-thb').textContent = formatTHB(simTotalTHB, 2);
+            document.getElementById('sim-unserved-days').textContent = `${unservedDays} ${unservedDays === 1 ? 'Day' : 'Days'}`;
+        }
+
+        // Preset Button Handlers
+        function setDeparturePreset(type) {
+            const now = new Date();
+            if (type === 'today') {
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                slider.value = Math.max(todayStart.getTime(), BOND_START_DATE.getTime());
+            } else if (type === 'short1day') {
+                const shortDate = new Date('2028-05-17T00:00:00+07:00');
+                slider.value = shortDate.getTime();
+            } else if (type === 'end') {
+                const endDate = new Date('2028-05-18T00:00:00+07:00');
+                slider.value = endDate.getTime();
+            }
+            calculateSimulation();
+        }
+
+        // Startup
+        window.onload = function() {
+            initSlider();
+            fetchExchangeRate();
+            updateDashboard();
+            
+            // Interval loop using the constant defined above
+            setInterval(updateDashboard, REFRESH_RATE_MS);
+            
+            setDeparturePreset('today');
+        };
+    </script>
+</body>
+</html>
