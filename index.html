@@ -438,8 +438,8 @@
             const dailyTotalTHBEquiv = (dailyUSD * usdExchangeRate) + dailyTHB;
 
             // DOM Updates
-            document.getElementById('header-balance-usd').textContent = formatUSD(remainingUSD, 4);
-            document.getElementById('header-balance-thb').textContent = `${formatTHB(remainingTHB, 2)}`;
+            document.getElementById('header-balance-usd').textContent = formatUSD(remainingUSD, 5);
+            document.getElementById('header-balance-thb').textContent = `${formatTHB(remainingTHB, 5)}`;
             document.getElementById('header-total-thb-equiv').textContent = `${formatTHB(totalTHBEquiv, 2)}`;
             document.getElementById('header-days-left').textContent = unservedWorkdaysToday.toLocaleString();
 
