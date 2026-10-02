@@ -421,8 +421,7 @@
             const secondsLeft = totalRemainingSeconds % 60;
 
             // Unserved discrete day count for Freedom Countdown line
-            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const diffMsToday = Math.max(0, BOND_END_DATE - todayStart);
+            const diffMsToday = Math.max(0, BOND_END_DATE - now);
             const unservedWorkdaysToday = Math.round(diffMsToday / (1000 * 60 * 60 * 24));
 
             // Real-time continuous amortization math
