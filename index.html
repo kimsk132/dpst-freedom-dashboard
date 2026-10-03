@@ -184,9 +184,9 @@
                     </div>
                     <h3 class="text-sm font-semibold text-slate-300">Original DPST Bond</h3>
                 </div>
-                <p class="text-xl font-bold text-white">USD 411,726.83</p>
-                <p class="text-xl font-bold text-white">+ THB 151,712.00</p>
-                <p class="text-xs text-slate-400 mt-2">Continuous linear pro-rata buyout structure</p>
+                <p id="principal-value-usd" class="text-xl font-bold text-white">USD 0</p>
+                <p id="principal-value-thb" class="text-xl font-bold text-white">+ THB 0</p>
+                <p id="principal-value-total" class="text-xs text-slate-400 mt-2">Equivalent to ~THB 0</p>
             </div>
 
             <!-- Daily Amortization / Buyout Decrease Rate -->
@@ -459,6 +459,10 @@
 
             document.getElementById('progress-percent').textContent = `${(servedFraction * 100).toFixed(6)}%`;
             document.getElementById('progress-bar-fill').style.width = `${servedFraction * 100}%`;
+
+            document.getElementById('principal-value-usd').textContent = `${formatUSD(ORIGINAL_USD, 2)}`;
+            document.getElementById('principal-value-thb').textContent = `+ ${formatTHB(ORIGINAL_THB, 2)}`;
+            document.getElementById('principal-value-total').textContent = `Equivalent to ~${formatTHB((ORIGINAL_USD * usdExchangeRate) + ORIGINAL_THB, 2)} principal.`;
 
             document.getElementById('daily-rate-components').textContent = `${formatUSD(dailyUSD, 2)} + ${formatTHB(dailyTHB, 2)}`;
             document.getElementById('daily-rate-total').textContent = `~${formatTHB(dailyTotalTHBEquiv, 2)} total daily penalty reduction`;
