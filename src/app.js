@@ -72,6 +72,12 @@ async function fetchExchangeRate() {
     updateDashboard();
 }
 
+function getMilestoneDate(targetFraction) {
+    const totalMs = BOND_END_DATE - BOND_START_DATE;
+    const milestoneMs = BOND_START_DATE.getTime() + (totalMs * targetFraction);
+    return new Date(milestoneMs);
+}
+
 function initControls() {
     // Render name dynamically in header
     const nameElemHeader = document.getElementById('user-name-header');
@@ -185,6 +191,48 @@ function updateDashboard() {
     const dailyUSD = ORIGINAL_USD / TOTAL_BOND_DAYS;
     const dailyTHB = ORIGINAL_THB / TOTAL_BOND_DAYS;
     const dailyTotalTHBEquiv = (dailyUSD * usdExchangeRate) + dailyTHB;
+
+    // Calculate 3-stage milestones (Past, Next 1, Next 2)
+    const currentPercent = servedFraction * 100;
+    const pastPercent = Math.floor(currentPercent / 10) * 10;
+    const next1Percent = pastPercent + 10;
+    const next2Percent = pastPercent + 20;
+
+    // Past Milestone
+    const pastElem = document.getElementById('milestone-past-text');
+    if (pastElem) {
+        if (pastPercent <= 0) {
+            pastElem.textContent = "Service Just Started";
+        } else {
+            const pastDate = getMilestoneDate(pastPercent / 100);
+            const pastDateStr = pastDate.toLocaleDateString('en-US', DATE_FORMAT_SHORT);
+            pastElem.textContent = `${pastPercent}% on ${pastDateStr}`;
+        }
+    }
+
+    // Next Milestone #1
+    const next1Elem = document.getElementById('milestone-next1-text');
+    if (next1Elem) {
+        if (next1Percent > 100) {
+            next1Elem.textContent = "100% Completed 🎉";
+        } else {
+            const next1Date = getMilestoneDate(next1Percent / 100);
+            const next1DateStr = next1Date.toLocaleDateString('en-US', DATE_FORMAT_SHORT);
+            next1Elem.textContent = `${next1Percent}% on ${next1DateStr}`;
+        }
+    }
+
+    // Next Milestone #2
+    const next2Elem = document.getElementById('milestone-next2-text');
+    if (next2Elem) {
+        if (next2Percent > 100) {
+            next2Elem.textContent = next1Percent >= 100 ? "Fully Discharged" : "100% (Full Term)";
+        } else {
+            const next2Date = getMilestoneDate(next2Percent / 100);
+            const next2DateStr = next2Date.toLocaleDateString('en-US', DATE_FORMAT_SHORT);
+            next2Elem.textContent = `${next2Percent}% on ${next2DateStr}`;
+        }
+    }
 
     document.getElementById('header-balance-usd').textContent = formatUSD(remainingUSD, 5);
     document.getElementById('header-balance-thb').textContent = `${formatTHB(remainingTHB, 5)}`;

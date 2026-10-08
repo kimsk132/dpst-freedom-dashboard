@@ -103,6 +103,41 @@
                     <span id="progress-start-label"></span>
                     <span id="progress-end-label"></span>
                 </div>
+                <!-- 3-Milestone Strip (1 Completed + 2 Upcoming) -->
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Completed Milestone -->
+                    <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center gap-3">
+                        <div class="p-2 rounded-lg bg-slate-800/80 text-amber-400 flex items-center justify-center flex-shrink-0 text-xs">
+                            🎉
+                        </div>
+                        <div class="flex flex-col text-left overflow-hidden">
+                            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold leading-tight">Last Achieved</span>
+                            <span id="milestone-past-text" class="text-xs text-slate-300 font-medium font-mono mt-0.5 truncate">Calculating...</span>
+                        </div>
+                    </div>
+
+                    <!-- Next Milestone -->
+                    <div class="p-3 rounded-xl bg-slate-900/90 border border-emerald-500/50 flex items-center gap-3 shadow-md shadow-emerald-500/5">
+                        <div class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-flag-checkered text-sm"></i>
+                        </div>
+                        <div class="flex flex-col text-left overflow-hidden">
+                            <span class="text-[10px] uppercase tracking-wider text-slate-300 font-semibold leading-tight">Next Milestone</span>
+                            <span id="milestone-next1-text" class="text-xs text-emerald-300 font-bold font-mono mt-0.5 truncate">Calculating...</span>
+                        </div>
+                    </div>
+
+                    <!-- Second Next Milestone -->
+                    <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800/80 flex items-center gap-3">
+                        <div class="p-2 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-[#10B981] fa-arrow-right text-sm"></i>
+                        </div>
+                        <div class="flex flex-col text-left overflow-hidden">
+                            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold leading-tight">Following Target</span>
+                            <span id="milestone-next2-text" class="text-xs text-slate-300 font-medium font-mono mt-0.5 truncate">Calculating...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
