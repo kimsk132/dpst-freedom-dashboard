@@ -35,6 +35,7 @@ let usdExchangeRate = DEFAULT_USD_THB_RATE;
 // --- TEST / PREVIEW FLAGS ---
 // Set to true in browser console via `window.IS_COMPLETED_TEST = true` to preview 100% completion mode
 window.IS_COMPLETED_TEST = false;
+let confettiFired = false;
 
 // DOM Elements
 const slider = document.getElementById('departure-slider');
@@ -168,6 +169,17 @@ function updateDashboard() {
     
     // Check if test flag is active OR if the real date has passed BOND_END_DATE
     const isCompleted = window.IS_COMPLETED_TEST || (now >= BOND_END_DATE);
+
+    // Trigger confetti once when entering completion state
+    if (isCompleted) {
+        if (!confettiFired) {
+            triggerVictoryConfetti();
+            confettiFired = true;
+        }
+    } else {
+        // Reset flag if reverting back out of test mode in console
+        confettiFired = false;
+    }
 
     const totalMs = BOND_END_DATE - BOND_START_DATE;
     
@@ -323,6 +335,24 @@ function setDeparturePreset(type) {
     slider.value = clampedMs;
     datepicker.value = formatDateToYYYYMMDD(new Date(clampedMs));
     calculateSimulation();
+}
+
+// Victory Confetti Explosion
+function triggerVictoryConfetti() {
+    if (typeof confetti === 'function') {
+        // Center burst
+        confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 }
+        });
+
+        // Left & Right cannon blasts
+        setTimeout(() => {
+            confetti({ particleCount: 60, angle: 60, spread: 55, origin: { x: 0 } });
+            confetti({ particleCount: 60, angle: 120, spread: 55, origin: { x: 1 } });
+        }, 250);
+    }
 }
 
 window.onload = function() {
