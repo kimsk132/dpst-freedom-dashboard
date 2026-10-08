@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPST Freedom Dashboard</title>
+    
+    <!-- Compiled Tailwind CSS -->
+    <link rel="stylesheet" href="../dist/styles.css">
+    
+    <!-- Favicon & Fonts -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%22 y=%2286%22 text-anchor=%22middle%22>🎓</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 md:p-8">
+
+    <header class="max-w-5xl mx-auto w-full text-center my-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-4 tracking-wide uppercase">
+            <i class="fa-solid fa-shield-halved"></i> <span id="user-name-header">User's DPST Bond Tracker</span>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-2">
+            Hello <span id="user-name-display">User</span>!
+        </h1>
+        <p class="text-slate-300 text-base md:text-lg font-medium mb-6">
+            Here's your live DPST bond summary and freedom milestone breakdown.
+        </p>
+
+        <div class="space-y-2 mt-3">
+            <p class="text-lg md:text-xl font-medium text-slate-300">
+                Remaining Principal: 
+                <span id="header-balance-usd" class="text-emerald-400 font-bold font-mono">$0.00 USD</span> 
+                <span class="text-slate-500">+</span> 
+                <span id="header-balance-thb" class="text-emerald-400 font-bold font-mono">0 THB</span>
+            </p>
+            <p class="text-xl md:text-2xl font-bold text-white">
+                Total Buyout Equivalent: 
+                <span id="header-total-thb-equiv" class="text-amber-400 font-mono">0 THB</span>
+            </p>
+            <p class="text-lg md:text-xl font-medium text-slate-400">
+                Freedom Countdown: 
+                <span id="header-days-left" class="text-emerald-400 font-bold">0</span> 
+                <span>unserved days remaining</span>
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto w-full space-y-6">
+        <!-- Live Clock & Progress Section -->
+        <div class="gradient-card glow-emerald rounded-2xl p-6 md:p-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
+                <div>
+                    <h2 class="text-sm uppercase tracking-wider text-slate-400 font-semibold mb-1">Total Bond Duration</h2>
+                    <p id="bond-duration-subtitle" class="text-xs text-slate-500"></p>
+                </div>
+                <div class="text-right flex items-center gap-3 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800">
+                    <i class="fa-solid fa-coins text-amber-400 text-lg"></i>
+                    <div class="text-left">
+                        <label for="fx-rate-input" class="text-xs text-slate-400 block">USD/THB Exchange Rate</label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-500">$1 =</span>
+                            <input type="number" id="fx-rate-input" step="0.01" class="bg-slate-800 text-emerald-400 font-bold text-sm rounded px-2 py-0.5 w-20 border border-slate-700 focus:outline-none focus:border-emerald-500">
+                            <span class="text-xs text-slate-500">THB</span>
+                            <button id="fx-refresh-btn" onclick="fetchExchangeRate()" class="ml-1 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border border-slate-700 transition" title="Refresh Live Exchange Rate">
+                                <i id="fx-refresh-icon" class="fa-solid fa-rotate text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center my-6">
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <span id="timer-days" class="block text-3xl md:text-4xl font-extrabold text-white">0</span>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest mt-1 block">Days</span>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <span id="timer-hours" class="block text-3xl md:text-4xl font-extrabold text-white">00</span>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest mt-1 block">Hours</span>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <span id="timer-minutes" class="block text-3xl md:text-4xl font-extrabold text-white">00</span>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest mt-1 block">Minutes</span>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <span id="timer-seconds" class="block text-3xl md:text-4xl font-extrabold text-emerald-400">00</span>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest mt-1 block">Seconds</span>
+                </div>
+            </div>
+
+            <div class="space-y-2 mt-6">
+                <div class="flex justify-between text-sm font-medium">
+                    <span class="text-slate-400">Overall Freedom Progress</span>
+                    <span id="progress-percent" class="text-emerald-400 font-bold font-mono">0.000000%</span>
+                </div>
+                <div class="w-full bg-slate-900 h-4 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                    <div id="progress-bar-fill" class="bg-emerald-500 h-full rounded-full transition-all duration-75 shadow-lg shadow-emerald-500/50" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500">
+                    <span id="progress-start-label"></span>
+                    <span id="progress-end-label"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="gradient-card p-6 rounded-2xl">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2.5 rounded-lg bg-blue-500/10 text-blue-400">
+                        <i class="fa-solid fa-file-contract text-lg"></i>
+                    </div>
+                    <h3 class="text-sm font-semibold text-slate-300">Original DPST Bond</h3>
+                </div>
+                <p id="principal-value-usd" class="text-xl font-bold text-white">USD 0</p>
+                <p id="principal-value-thb" class="text-xl font-bold text-white">+ THB 0</p>
+                <p id="principal-value-total" class="text-xs text-slate-400 mt-2"></p>
+            </div>
+
+            <div class="gradient-card p-6 rounded-2xl">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+                        <i class="fa-solid fa-arrow-trend-down text-lg"></i>
+                    </div>
+                    <h3 class="text-sm font-semibold text-slate-300">Daily Freedom Rate</h3>
+                </div>
+                <p id="daily-rate-components" class="text-lg font-bold text-emerald-400">$0.00 USD + 0 THB</p>
+                <p id="daily-rate-total" class="text-xs text-slate-400 mt-2"></p>
+            </div>
+
+            <div class="gradient-card p-6 rounded-2xl">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2.5 rounded-lg bg-purple-500/10 text-purple-400">
+                        <i class="fa-solid fa-circle-check text-lg"></i>
+                    </div>
+                    <h3 class="text-sm font-semibold text-slate-300">Service Value Earned</h3>
+                </div>
+                <p id="served-value-usd" class="text-xl font-bold text-white font-mono">$0.00 USD</p>
+                <p id="served-value-thb" class="text-xl font-bold text-white font-mono">+ 0 THB</p>
+                <p id="served-value-total" class="text-xs text-slate-400 mt-2">Fulfilled in real time</p>
+            </div>
+        </div>
+
+        <div class="gradient-card p-6 md:p-8 rounded-2xl space-y-6">
+            <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-emerald-400"></i> Interactive Departure Simulator
+                    </h2>
+                    <p class="text-sm text-slate-400">Use calendar picker, drag slider, click arrow buttons, or select a preset to simulate remaining penalty balance.</p>
+                </div>
+                
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setDeparturePreset('today')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                        Last Day: Today
+                    </button>
+                    <button onclick="setDeparturePreset('early_m6')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                        ~6 Months Early
+                    </button>
+                    <button onclick="setDeparturePreset('early_m3')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                        ~3 Months Early
+                    </button>
+                    <button onclick="setDeparturePreset('early_m2')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                        ~2 Months Early
+                    </button>
+                    <button onclick="setDeparturePreset('early_m1')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition">
+                        ~1 Month Early
+                    </button>
+                    <button onclick="setDeparturePreset('end')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 transition">
+                        Full Term
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-4 bg-slate-900/60 p-5 rounded-xl border border-slate-800/80">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <label for="departure-slider" class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                        <span>Last Day of Service:</span>
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <div class="relative flex items-center bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 focus-within:border-emerald-500 transition">
+                            <i class="fa-regular fa-calendar text-emerald-400 text-sm mr-2"></i>
+                            <input type="date" id="departure-datepicker" class="bg-transparent text-emerald-400 font-bold text-sm focus:outline-none cursor-pointer">
+                        </div>
+                        <span id="simulated-date-display" class="text-base md:text-lg font-bold text-emerald-400 hidden sm:inline"></span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <button id="step-decrement-btn" onclick="adjustSimulatedDate(-1)" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border border-slate-700 transition flex-shrink-0" title="Decrement 1 Day">
+                        <i class="fa-solid fa-chevron-left text-xs md:text-sm"></i>
+                    </button>
+                    
+                    <input type="range" id="departure-slider" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    
+                    <button id="step-increment-btn" onclick="adjustSimulatedDate(1)" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border border-slate-700 transition flex-shrink-0" title="Increment 1 Day">
+                        <i class="fa-solid fa-chevron-right text-xs md:text-sm"></i>
+                    </button>
+                </div>
+                
+                <div class="flex justify-between text-xs text-slate-500 font-mono">
+                    <span id="slider-min-label">Today</span>
+                    <span id="slider-max-label"></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-center">
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <p class="text-xs text-slate-400 uppercase">Simulated USD Portion</p>
+                    <p id="sim-cost-usd" class="text-xl font-extrabold text-emerald-400 font-mono">$0.00</p>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <p class="text-xs text-slate-400 uppercase">Simulated THB Portion</p>
+                    <p id="sim-cost-thb" class="text-xl font-extrabold text-emerald-400 font-mono">0 THB</p>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <p class="text-xs text-slate-400 uppercase">Total THB Equivalent</p>
+                    <p id="sim-cost-total-thb" class="text-xl font-extrabold text-white font-mono">0 THB</p>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                    <p class="text-xs text-slate-400 uppercase">Unserved Days</p>
+                    <p id="sim-unserved-days" class="text-xl font-extrabold text-amber-400">0 Days</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="max-w-5xl mx-auto w-full text-center mt-12 py-6 border-t border-slate-800/60 text-xs text-slate-500 space-y-2">
+        <p>DPST Freedom Countdown Dashboard</p>
+        <p id="footer-formula-text"></p>
+    </footer>
+
+    <!-- Dedicated Application JavaScript -->
+    <script src="./app.js"></script>
+</body>
+</html>

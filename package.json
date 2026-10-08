@@ -1,0 +1,27 @@
+{
+  "name": "dpst-freedom-dashboard",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/styles.css --minify",
+    "watch": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/styles.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kimsk132/dpst-freedom-dashboard.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kimsk132/dpst-freedom-dashboard/issues"
+  },
+  "homepage": "https://github.com/kimsk132/dpst-freedom-dashboard#readme",
+  "description": "",
+  "devDependencies": {
+    "tailwindcss": "^4.3.3"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.3"
+  }
+}

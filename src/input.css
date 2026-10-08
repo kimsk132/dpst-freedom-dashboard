@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-900: #064e3b;
+  --color-slate-850: #172033;
+  --font-sans: 'Inter', sans-serif;
+}
+
+/* Explicitly enforce top-level background & text colors */
+html, body {
+    background-color: #020617 !important; /* slate-950 */
+    color: #f8fafc !important;             /* slate-50 */
+    min-height: 100vh;
+}
+
+.glow-emerald {
+    box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
+}
+
+.gradient-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #10b981;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -webkit-appearance: textfield;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) hue-rotate(100deg) brightness(1.2);
+    cursor: pointer;
+}
