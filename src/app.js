@@ -36,6 +36,7 @@ let usdExchangeRate = DEFAULT_USD_THB_RATE;
 // Set to true in browser console via `window.IS_COMPLETED_TEST = true` to preview 100% completion mode
 window.IS_COMPLETED_TEST = false;
 let confettiFired = false;
+let lastCompletedState = false;
 
 // DOM Elements
 const slider = document.getElementById('departure-slider');
@@ -193,18 +194,66 @@ function updateDashboard() {
     // Check if test flag is active OR if the real date has passed BOND_END_DATE
     const isCompleted = window.IS_COMPLETED_TEST || (now >= BOND_END_DATE);
 
-    // Trigger confetti once when entering completion state
-    if (isCompleted) {
-        if (!confettiFired) {
-            triggerVictoryConfetti();
-            showVictoryModal();
-            confettiFired = true;
+    // Dynamic Slider Bounds & Reset Logic
+    if (slider) {
+        if (isCompleted) {
+            const minMs = BOND_START_DATE.getTime();
+            const maxMs = BOND_FULL_TERM_LAST_DAY.getTime();
+
+            slider.min = minMs;
+            slider.max = maxMs;
+
+            if (datepicker) {
+                datepicker.min = formatDateToYYYYMMDD(BOND_START_DATE);
+                datepicker.max = formatDateToYYYYMMDD(BOND_FULL_TERM_LAST_DAY);
+            }
+
+            const minLabel = document.getElementById('slider-min-label');
+            if (minLabel) {
+                minLabel.textContent = `Start (${BOND_START_DATE.toLocaleDateString('en-US', DATE_FORMAT_SHORT)})`;
+            }
+
+            // Reset slider value to End Date upon entering victory mode
+            if (!lastCompletedState) {
+                slider.value = maxMs;
+                if (datepicker) datepicker.value = formatDateToYYYYMMDD(BOND_FULL_TERM_LAST_DAY);
+            }
+        } else {
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const minMs = Math.max(todayStart.getTime(), BOND_START_DATE.getTime());
+            const maxMs = BOND_FULL_TERM_LAST_DAY.getTime();
+
+            slider.min = minMs;
+            slider.max = maxMs;
+
+            if (datepicker) {
+                datepicker.min = formatDateToYYYYMMDD(new Date(minMs));
+                datepicker.max = formatDateToYYYYMMDD(BOND_FULL_TERM_LAST_DAY);
+            }
+
+            const minLabel = document.getElementById('slider-min-label');
+            if (minLabel) {
+                minLabel.textContent = `Today (${now.toLocaleDateString('en-US', DATE_FORMAT_SHORT)})`;
+            }
+
+            // Reset slider value if exiting test mode
+            if (lastCompletedState) {
+                slider.value = minMs;
+                if (datepicker) datepicker.value = formatDateToYYYYMMDD(new Date(minMs));
+            }
         }
-    } else {
-        // Reset flag if reverting back out of test mode in console
+    }
+
+    // Trigger confetti & victory modal on transition edge
+    if (isCompleted && !lastCompletedState) {
+        triggerVictoryConfetti();
+        showVictoryModal();
+    } else if (!isCompleted && lastCompletedState) {
         closeVictoryModal();
         confettiFired = false;
     }
+
+    lastCompletedState = isCompleted;
 
     const totalMs = BOND_END_DATE - BOND_START_DATE;
     
