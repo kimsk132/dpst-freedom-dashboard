@@ -164,6 +164,29 @@ function getUnservedDaysFromLastServiceDate(lastServiceDateObj) {
     return Math.round(diffMs / MS_PER_DAY);
 }
 
+// Modal Control Functions
+function showVictoryModal() {
+    const modal = document.getElementById('victory-modal');
+    const daysServedElem = document.getElementById('modal-days-served');
+    
+    if (!modal) return;
+    
+    if (daysServedElem && TOTAL_BOND_DAYS) {
+        daysServedElem.textContent = TOTAL_BOND_DAYS.toLocaleString();
+    }
+    
+    modal.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+    modal.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+}
+
+function closeVictoryModal() {
+    const modal = document.getElementById('victory-modal');
+    if (!modal) return;
+    
+    modal.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+    modal.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+}
+
 function updateDashboard() {
     const now = new Date();
     
@@ -174,10 +197,12 @@ function updateDashboard() {
     if (isCompleted) {
         if (!confettiFired) {
             triggerVictoryConfetti();
+            showVictoryModal();
             confettiFired = true;
         }
     } else {
         // Reset flag if reverting back out of test mode in console
+        closeVictoryModal();
         confettiFired = false;
     }
 
