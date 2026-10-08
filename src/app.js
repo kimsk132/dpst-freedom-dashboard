@@ -32,6 +32,10 @@ const REFRESH_RATE_MS = 100;
 const TOTAL_BOND_DAYS = Math.round((BOND_END_DATE - BOND_START_DATE) / MS_PER_DAY);
 let usdExchangeRate = DEFAULT_USD_THB_RATE;
 
+// --- TEST / PREVIEW FLAGS ---
+// Set to true in browser console via `window.IS_COMPLETED_TEST = true` to preview 100% completion mode
+window.IS_COMPLETED_TEST = false;
+
 // DOM Elements
 const slider = document.getElementById('departure-slider');
 const datepicker = document.getElementById('departure-datepicker');
@@ -162,8 +166,13 @@ function getUnservedDaysFromLastServiceDate(lastServiceDateObj) {
 function updateDashboard() {
     const now = new Date();
     
+    // Check if test flag is active OR if the real date has passed BOND_END_DATE
+    const isCompleted = window.IS_COMPLETED_TEST || (now >= BOND_END_DATE);
+
     const totalMs = BOND_END_DATE - BOND_START_DATE;
-    const remainingMs = Math.max(0, BOND_END_DATE - now);
+    
+    // Force remaining time to 0 if completed
+    const remainingMs = isCompleted ? 0 : Math.max(0, BOND_END_DATE - now);
 
     let remainingFraction = remainingMs / totalMs;
     if (remainingFraction < 0) remainingFraction = 0;
@@ -177,8 +186,7 @@ function updateDashboard() {
     const minutesLeft = Math.floor((totalRemainingSeconds % (SECONDS_PER_MINUTE * MINUTES_PER_HOUR)) / SECONDS_PER_MINUTE);
     const secondsLeft = totalRemainingSeconds % SECONDS_PER_MINUTE;
 
-    const diffMsToday = Math.max(0, BOND_END_DATE - now);
-    const unservedWorkdaysToday = Math.round(diffMsToday / MS_PER_DAY);
+    const unservedWorkdaysToday = isCompleted ? 0 : Math.round(remainingMs / MS_PER_DAY);
 
     const remainingUSD = ORIGINAL_USD * remainingFraction;
     const remainingTHB = ORIGINAL_THB * remainingFraction;
@@ -192,48 +200,7 @@ function updateDashboard() {
     const dailyTHB = ORIGINAL_THB / TOTAL_BOND_DAYS;
     const dailyTotalTHBEquiv = (dailyUSD * usdExchangeRate) + dailyTHB;
 
-    // Calculate 3-stage milestones (Past, Next 1, Next 2)
-    const currentPercent = servedFraction * 100;
-    const pastPercent = Math.floor(currentPercent / 10) * 10;
-    const next1Percent = pastPercent + 10;
-    const next2Percent = pastPercent + 20;
-
-    // Past Milestone
-    const pastElem = document.getElementById('milestone-past-text');
-    if (pastElem) {
-        if (pastPercent <= 0) {
-            pastElem.textContent = "Service Just Started";
-        } else {
-            const pastDate = getMilestoneDate(pastPercent / 100);
-            const pastDateStr = pastDate.toLocaleDateString('en-US', DATE_FORMAT_SHORT);
-            pastElem.textContent = `${pastPercent}% on ${pastDateStr}`;
-        }
-    }
-
-    // Next Milestone #1
-    const next1Elem = document.getElementById('milestone-next1-text');
-    if (next1Elem) {
-        if (next1Percent > 100) {
-            next1Elem.textContent = "100% Completed 🎉";
-        } else {
-            const next1Date = getMilestoneDate(next1Percent / 100);
-            const next1DateStr = next1Date.toLocaleDateString('en-US', DATE_FORMAT_SHORT);
-            next1Elem.textContent = `${next1Percent}% on ${next1DateStr}`;
-        }
-    }
-
-    // Next Milestone #2
-    const next2Elem = document.getElementById('milestone-next2-text');
-    if (next2Elem) {
-        if (next2Percent > 100) {
-            next2Elem.textContent = next1Percent >= 100 ? "Fully Discharged" : "100% (Full Term)";
-        } else {
-            const next2Date = getMilestoneDate(next2Percent / 100);
-            const next2DateStr = next2Date.toLocaleDateString('en-US', DATE_FORMAT_SHORT);
-            next2Elem.textContent = `${next2Percent}% on ${next2DateStr}`;
-        }
-    }
-
+    // --- DOM RENDERING ---
     document.getElementById('header-balance-usd').textContent = formatUSD(remainingUSD, 5);
     document.getElementById('header-balance-thb').textContent = `${formatTHB(remainingTHB, 5)}`;
     document.getElementById('header-total-thb-equiv').textContent = `${formatTHB(totalTHBEquiv, 2)}`;
@@ -246,6 +213,49 @@ function updateDashboard() {
 
     document.getElementById('progress-percent').textContent = `${(servedFraction * 100).toFixed(6)}%`;
     document.getElementById('progress-bar-fill').style.width = `${servedFraction * 100}%`;
+
+    // --- MILESTONE RENDERING ---
+    const pastElem = document.getElementById('milestone-past-text');
+    const next1Elem = document.getElementById('milestone-next1-text');
+    const next2Elem = document.getElementById('milestone-next2-text');
+
+    if (isCompleted) {
+        if (pastElem) pastElem.textContent = `90% on Sep 12, 2027`;
+        if (next1Elem) next1Elem.textContent = `100% on May 18, 2028 🎉`;
+        if (next2Elem) next2Elem.textContent = `Bond Fully Discharged!`;
+    } else {
+        const currentPercent = servedFraction * 100;
+        const pastPercent = Math.floor(currentPercent / 10) * 10;
+        const next1Percent = pastPercent + 10;
+        const next2Percent = pastPercent + 20;
+
+        if (pastElem) {
+            if (pastPercent <= 0) {
+                pastElem.textContent = "Service Just Started";
+            } else {
+                const pastDate = getMilestoneDate(pastPercent / 100);
+                pastElem.textContent = `${pastPercent}% on ${pastDate.toLocaleDateString('en-US', DATE_FORMAT_SHORT)}`;
+            }
+        }
+
+        if (next1Elem) {
+            if (next1Percent > 100) {
+                next1Elem.textContent = "100% Completed 🎉";
+            } else {
+                const next1Date = getMilestoneDate(next1Percent / 100);
+                next1Elem.textContent = `${next1Percent}% on ${next1Date.toLocaleDateString('en-US', DATE_FORMAT_SHORT)}`;
+            }
+        }
+
+        if (next2Elem) {
+            if (next2Percent > 100) {
+                next2Elem.textContent = next1Percent >= 100 ? "Fully Discharged" : "100% (Full Term)";
+            } else {
+                const next2Date = getMilestoneDate(next2Percent / 100);
+                next2Elem.textContent = `${next2Percent}% on ${next2Date.toLocaleDateString('en-US', DATE_FORMAT_SHORT)}`;
+            }
+        }
+    }
 
     document.getElementById('principal-value-usd').textContent = `${formatUSD(ORIGINAL_USD, 2)}`;
     document.getElementById('principal-value-thb').textContent = `+ ${formatTHB(ORIGINAL_THB, 2)}`;
