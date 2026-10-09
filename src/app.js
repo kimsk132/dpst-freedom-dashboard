@@ -187,6 +187,21 @@ function closeVictoryModal() {
     modal.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
 }
 
+function getAdaptiveFontSizeClass(text) {
+    const len = text.length;
+
+    // >20 chars (e.g. THB 100,000,000.00)
+    if (len > 20) {
+        return 'text-sm sm:text-base md:text-lg lg:text-xl';
+    } 
+    // 15-20 chars (e.g. THB 14,206,281.33)
+    if (len > 14) {
+        return 'text-base sm:text-sm md:text-lg lg:text-xl';
+    } 
+    // <15 chars (e.g. THB 50,000.00)
+    return 'text-lg sm:text-xl md:text-xl lg:text-xl';
+}
+
 function updateDashboard() {
     const now = new Date();
     
@@ -373,9 +388,17 @@ function calculateSimulation() {
     const simTHB = ORIGINAL_THB * simFraction;
     const simTotalTHB = (simUSD * usdExchangeRate) + simTHB;
 
+    // Update display cards
+    const totalThbText = formatTHB(simTotalTHB, 2);
+    const totalThbElem = document.getElementById('sim-cost-total-thb');
+    if (totalThbElem) {
+        totalThbElem.textContent = totalThbText;
+        
+        // Remove old sizing classes and apply the dynamic one
+        totalThbElem.className = `font-extrabold text-white font-mono tracking-tight transition-all duration-150 ${getAdaptiveFontSizeClass(totalThbText)}`;
+    }
     document.getElementById('sim-cost-usd').textContent = formatUSD(simUSD, 2);
     document.getElementById('sim-cost-thb').textContent = formatTHB(simTHB, 2);
-    document.getElementById('sim-cost-total-thb').textContent = formatTHB(simTotalTHB, 2);
     document.getElementById('sim-unserved-days').textContent = `${unservedDays} ${unservedDays === 1 ? 'Day' : 'Days'}`;
 }
 
