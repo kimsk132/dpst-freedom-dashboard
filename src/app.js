@@ -5,19 +5,15 @@ const userName = "Pairode";
 const BOND_START_DATE = new Date('2021-07-16T00:00:00+07:00');
 const BOND_FULL_TERM_LAST_DAY = new Date('2028-05-18T00:00:00+07:00');
 
-// Dynamically compute BOND_END_DATE as midnight immediately following BOND_FULL_TERM_LAST_DAY
-const BOND_END_DATE = new Date(
-    BOND_FULL_TERM_LAST_DAY.getFullYear(),
-    BOND_FULL_TERM_LAST_DAY.getMonth(),
-    BOND_FULL_TERM_LAST_DAY.getDate() + 1
-);
-
 const ORIGINAL_USD = 411726.83;
 const ORIGINAL_THB = 151712.00;
 
-// --- FINANCIAL & TIME CONSTANTS ---
+// --- FINANCIAL CONSTANTS ---
 const DEFAULT_USD_THB_RATE = 34.5;
 const FX_FEE_MULTIPLIER = 1.02;
+
+// --- TIME CONSTANTS ---
+const REFRESH_RATE_MS = 100;
 
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
@@ -26,9 +22,12 @@ const HOURS_PER_DAY = 24;
 const SECONDS_PER_DAY = SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY;
 const MS_PER_DAY = SECONDS_PER_DAY * MS_PER_SECOND;
 
-const REFRESH_RATE_MS = 100;
-
 // Derived constants
+const BOND_END_DATE = new Date(
+    BOND_FULL_TERM_LAST_DAY.getFullYear(),
+    BOND_FULL_TERM_LAST_DAY.getMonth(),
+    BOND_FULL_TERM_LAST_DAY.getDate() + 1
+);
 const TOTAL_BOND_DAYS = Math.round((BOND_END_DATE - BOND_START_DATE) / MS_PER_DAY);
 let usdExchangeRate = DEFAULT_USD_THB_RATE;
 
