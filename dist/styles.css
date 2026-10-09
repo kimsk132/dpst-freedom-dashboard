@@ -338,6 +338,9 @@
   .max-w-md {
     max-width: var(--container-md);
   }
+  .min-w-0 {
+    min-width: 0px;
+  }
   .flex-shrink {
     flex-shrink: 1;
   }
@@ -879,6 +882,10 @@
     }
     .sm\:items-center {
       align-items: center;
+    }
+    .sm\:text-xl {
+      font-size: var(--text-xl);
+      line-height: var(--tw-leading, var(--text-xl--line-height));
     }
   }
   @media (width >= 48rem) {
