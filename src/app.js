@@ -196,7 +196,7 @@ function getAdaptiveFontSizeClass(text) {
     } 
     // 15-20 chars (e.g. THB 14,206,281.33)
     if (len > 14) {
-        return 'text-base sm:text-sm md:text-lg lg:text-xl';
+        return 'text-xl sm:text-sm md:text-lg lg:text-xl';
     } 
     // <15 chars (e.g. THB 50,000.00)
     return 'text-lg sm:text-xl md:text-xl lg:text-xl';
